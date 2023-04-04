@@ -23,7 +23,7 @@ $ gcc -Wall -Werror -Wextra -pedantic ./src/*.c -lm -o maze `sdl2-config --cflag
 ```
 
 ## Flowchart
-![The Maze Flow Chart](https://imgur.com/a/ihAeSdH)
+![The Maze Flow Chart](https://i.imgur.com/a/ihAeSdH)
 
 ## Demo
-[![The Maze Demo](https://imgur.com/a/JxSN9uy)](https://www.youtube.com/embed/6T2N8gNUTQ8)
+[![The Maze Demo](https://i.imgur.com/a/JxSN9uy)](https://www.youtube.com/embed/6T2N8gNUTQ8)
