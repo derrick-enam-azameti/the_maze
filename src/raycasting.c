@@ -51,26 +51,35 @@ void castRays(SDL_Renderer *renderer, double playerX, double playerY, double pla
 		{
 			if (rayX > 0)
 			{
-				wallColor = 255;      // White for East-facing walls
+				wallColor = 140;      // White for East-facing walls
 			}
 			else
 			{
-				wallColor = 127;      // Gray for West-facing walls
+				wallColor = 27;      // Gray for West-facing walls
 			}
 		}
 		else  // More vertical direction
 		{
 			if (rayY > 0)
 			{
-				wallColor = 0;        // Black for South-facing walls
+				wallColor = 88;        // Black for South-facing walls
 			}
 			else
 			{
-				wallColor = 255;      // White for North-facing walls
+				wallColor = 92;      // White for North-facing walls
 			}
 		}
 
-		SDL_SetRenderDrawColor(renderer, wallColor, wallColor, wallColor, 255);
-		SDL_RenderDrawLine(renderer, i * (WINDOW_WIDTH / NUM_RAYS), (WINDOW_HEIGHT - lineHeight) / 2, i * (WINDOW_WIDTH / NUM_RAYS), (WINDOW_HEIGHT + lineHeight) / 2);
+		// Draw the ceiling
+        SDL_SetRenderDrawColor(renderer, 128, 0, 128, 255);  // Purple for the ceiling
+        SDL_RenderDrawLine(renderer, i, 0, i, (WINDOW_HEIGHT - lineHeight) / 2);
+
+        // Draw the ground
+        SDL_SetRenderDrawColor(renderer, 10, 132, 0, 255);  // Yellow for the ground
+        SDL_RenderDrawLine(renderer, i, (WINDOW_HEIGHT + lineHeight) / 2, i, WINDOW_HEIGHT);
+
+        // Draw the wall
+        SDL_SetRenderDrawColor(renderer, wallColor, wallColor, wallColor, 255);
+        SDL_RenderDrawLine(renderer, i, (WINDOW_HEIGHT - lineHeight) / 2, i, (WINDOW_HEIGHT + lineHeight) / 2);
 	}
 }

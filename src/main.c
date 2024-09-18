@@ -160,9 +160,9 @@ void cast_rays(SDL_Renderer *renderer, Player *player, int maze[12][16]) {
 
         // Set the color based on the wall orientation
         if (hit_vertical) {
-            SDL_SetRenderDrawColor(renderer, 255, 0, 0, 255);  // Red for vertical walls (East/West)
+            SDL_SetRenderDrawColor(renderer, 167, 171, 166, 255);  // Red for vertical walls (East/West)
         } else {
-            SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);  // Green for horizontal walls (North/South)
+            SDL_SetRenderDrawColor(renderer, 30, 55, 95, 255);  // Green for horizontal walls (North/South)
         }
 
         // Draw the wall column
