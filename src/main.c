@@ -12,18 +12,20 @@ Player player = {1.5, 1.5, 0};  // Starting position and angle
 
 int maze[12][16] = {
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1},
-    {1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 1, 1, 1, 0, 0, 1},
-    {1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1},
-    {1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1},
-    {1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1},
-    {1, 1, 1, 0, 1, 0, 1, 1, 1, 1, 1, 0, 1, 0, 0, 1},
-    {1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1},
-    {1, 0, 1, 1, 1, 0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1},
-    {1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1},
+    {1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1},
+    {1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1},
+    {1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1},
+    {1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1},
+    {1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
+    {1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1},
+    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
     {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
 };
+
+
 
 // Initialize SDL, create window and renderer
 int init() {
@@ -128,45 +130,91 @@ void move_player(Player *player, const Uint8 *state, int maze[12][16]) {
 
 // Cast rays and render 3D walls with different colors based on orientation
 void cast_rays(SDL_Renderer *renderer, Player *player, int maze[12][16]) {
+    // Set the color for the sky
+    SDL_SetRenderDrawColor(renderer, 65, 149, 255, 255);  // Blue for sky
+    SDL_RenderClear(renderer);  // Clear the screen to this color (sky)
+
+    // Set the color for the ground
+    SDL_SetRenderDrawColor(renderer, 23, 112, 0, 255);  // Green for ground
+    SDL_Rect ground_rect = {0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2};
+    SDL_RenderFillRect(renderer, &ground_rect);  // Draw the ground
+
+    // Cast rays to draw walls
     for (int i = 0; i < NUM_RAYS; i++) {
         // Calculate the ray's angle
         float ray_angle = player->angle - (FOV / 2.0) * (M_PI / 180) + i * (FOV * (M_PI / 180)) / NUM_RAYS;
 
-        // Cast the ray step by step
-        float ray_x = player->x;
-        float ray_y = player->y;
-        float distance_to_wall = 0;
-        int hit_vertical = 0;  // 0 = horizontal wall, 1 = vertical wall
+        // Step sizes
+        float ray_dir_x = cos(ray_angle);
+        float ray_dir_y = sin(ray_angle);
 
-        while (1) {
-            distance_to_wall += 0.01;
-            ray_x = player->x + cos(ray_angle) * distance_to_wall;
-            ray_y = player->y + sin(ray_angle) * distance_to_wall;
+        // Position in grid space
+        int map_x = (int)player->x;
+        int map_y = (int)player->y;
 
-            // Check if the ray hits a wall
-            if (maze[(int)ray_y][(int)ray_x] == 1) {
-                // Determine if the hit was vertical (East/West) or horizontal (North/South)
-                float delta_x = fabs(ray_x - player->x);
-                float delta_y = fabs(ray_y - player->y);
+        // Distance to the next x and y grid lines
+        float delta_dist_x = fabs(1 / ray_dir_x);
+        float delta_dist_y = fabs(1 / ray_dir_y);
 
-                if (delta_x > delta_y) {
-                    hit_vertical = 1;  // The wall is vertical (East/West)
-                } else {
-                    hit_vertical = 0;  // The wall is horizontal (North/South)
-                }
-                break;
+        float side_dist_x, side_dist_y;
+
+        // Step direction (-1 or 1) and initial distance to the first grid boundary
+        int step_x, step_y;
+
+        if (ray_dir_x < 0) {
+            step_x = -1;
+            side_dist_x = (player->x - map_x) * delta_dist_x;
+        } else {
+            step_x = 1;
+            side_dist_x = (map_x + 1.0 - player->x) * delta_dist_x;
+        }
+
+        if (ray_dir_y < 0) {
+            step_y = -1;
+            side_dist_y = (player->y - map_y) * delta_dist_y;
+        } else {
+            step_y = 1;
+            side_dist_y = (map_y + 1.0 - player->y) * delta_dist_y;
+        }
+
+        // Perform DDA to find the first wall hit
+        int hit = 0;
+        int side;  // 0 for horizontal, 1 for vertical
+        while (hit == 0) {
+            // Jump to next square
+            if (side_dist_x < side_dist_y) {
+                side_dist_x += delta_dist_x;
+                map_x += step_x;
+                side = 1;  // Vertical wall
+            } else {
+                side_dist_y += delta_dist_y;
+                map_y += step_y;
+                side = 0;  // Horizontal wall
+            }
+
+            // Check if ray hits a wall
+            if (maze[map_y][map_x] == 1) {
+                hit = 1;
             }
         }
 
-        // Set the color based on the wall orientation
-        if (hit_vertical) {
-            SDL_SetRenderDrawColor(renderer, 167, 171, 166, 255);  // Red for vertical walls (East/West)
+        // Calculate distance to the hit
+        float perp_wall_dist;
+        if (side == 0) {
+            perp_wall_dist = (map_y - player->y + (1 - step_y) / 2) / ray_dir_y;
         } else {
-            SDL_SetRenderDrawColor(renderer, 30, 55, 95, 255);  // Green for horizontal walls (North/South)
+            perp_wall_dist = (map_x - player->x + (1 - step_x) / 2) / ray_dir_x;
+        }
+
+        // Set the color based on the wall orientation
+        if (side == 1) {
+            SDL_SetRenderDrawColor(renderer, 93, 93, 93, 255);  // Light Gray for vertical walls (East/West)
+        } else {
+            SDL_SetRenderDrawColor(renderer, 77, 77, 77, 255);  // Dark Gray for horizontal walls (North/South)
         }
 
         // Draw the wall column
-        int line_height = (int)(SCREEN_HEIGHT / distance_to_wall);
+        int line_height = (int)(SCREEN_HEIGHT / perp_wall_dist);
         SDL_RenderDrawLine(renderer, i, (SCREEN_HEIGHT - line_height) / 2, i, (SCREEN_HEIGHT + line_height) / 2);
     }
 }
@@ -191,7 +239,7 @@ int main() {
         move_player(&player, state, maze);
 
         // Clear screen
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);  // Black background
+        SDL_SetRenderDrawColor(renderer, 65, 149, 255, 255);  // Blue background
         SDL_RenderClear(renderer);
 
         // Cast rays to render 3D walls

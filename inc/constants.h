@@ -8,7 +8,7 @@
 #define MAP_HEIGHT 8
 #define PLAYER_X 3.5
 #define PLAYER_Y 3.5
-#define PLAYER_ANGLE 45.0
+#define PLAYER_ANGLE 90.0
 
 extern int map[MAP_WIDTH][MAP_HEIGHT];
 
