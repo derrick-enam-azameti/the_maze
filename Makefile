@@ -1,6 +1,6 @@
 CC = gcc
 CFLAGS = -Wall -Werror -Wextra -pedantic -Iinc
-LDFLAGS = `sdl2-config --cflags --libs` -lSDL2 -lm
+LDFLAGS = `sdl2-config --cflags --libs` -lSDL2 -lSDL2_image -lm
 
 # List of source files and corresponding object files
 SRC = src/main.c src/raycasting.c src/map_parser.c

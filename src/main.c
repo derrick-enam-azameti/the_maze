@@ -1,10 +1,47 @@
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
 #include <stdio.h>
 #include "map_parser.h"
 #include "raycasting.h"
 #include "raycast_maze.h"
 #include "constants.h"
 #include <stdbool.h>
+#define COLLISION_BUFFER 0.1  // Distance to maintain from walls
+
+// Global variable for the ground texture
+SDL_Texture *groundTexture;
+
+void load_textures(SDL_Renderer *renderer) {
+    groundTexture = IMG_LoadTexture(renderer, "./maps/grass14.png");
+    if (!groundTexture) {
+        printf("Failed to load ground texture: %s\n", SDL_GetError());
+    }
+}
+
+void render_ground(SDL_Renderer *renderer) {
+    int textureWidth, textureHeight;
+    SDL_QueryTexture(groundTexture, NULL, NULL, &textureWidth, &textureHeight);
+
+    // Calculate the number of times the texture needs to be repeated across the screen
+    int tilesX = SCREEN_WIDTH / textureWidth + 1;  // +1 ensures no gaps at the edge
+    int tilesY = (SCREEN_HEIGHT / 2) / textureHeight + 1;  // +1 ensures no gaps at the edge
+
+    // Render the ground by tiling the texture
+    for (int y = 0; y < tilesY; y++) {
+        for (int x = 0; x < tilesX; x++) {
+            SDL_Rect destRect = { x * textureWidth, SCREEN_HEIGHT / 2 + y * textureHeight, textureWidth, textureHeight };
+            SDL_RenderCopy(renderer, groundTexture, NULL, &destRect);
+        }
+    }
+}
+
+
+
+
+void cleanup() {
+    SDL_DestroyTexture(groundTexture);
+    // Other cleanup code...
+}
 
 // Global variables
 SDL_Window *window = NULL;
@@ -20,6 +57,8 @@ int init() {
         printf("SDL could not initialize! SDL_Error: %s\n", SDL_GetError());
         return 0;
     }
+
+    SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "0"); // Disable texture filtering
 
     window = SDL_CreateWindow("3D Maze Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == NULL) {
@@ -72,8 +111,8 @@ void move_player(Player *player, const Uint8 *state, int maze[12][16]) {
         } else {
             // Slide along wall
             float slide_angle = player->angle + M_PI / 2;
-            new_x = player->x + cos(slide_angle) * PLAYER_SPEED;
-            new_y = player->y + sin(slide_angle) * PLAYER_SPEED;
+            new_x = player->x + cos(slide_angle) * (PLAYER_SPEED + COLLISION_BUFFER);
+            new_y = player->y + sin(slide_angle) * (PLAYER_SPEED + COLLISION_BUFFER);
 
             if (!is_wall(new_x, new_y, maze)) {
                 player->x = new_x;
@@ -121,10 +160,15 @@ void cast_rays(SDL_Renderer *renderer, Player *player, int maze[12][16]) {
     SDL_SetRenderDrawColor(renderer, 65, 149, 255, 255);  // Blue for sky
     SDL_RenderClear(renderer);  // Clear the screen to this color (sky)
 
+    load_textures(renderer);
     // Set the color for the ground
-    SDL_SetRenderDrawColor(renderer, 23, 112, 0, 255);  // Green for ground
-    SDL_Rect ground_rect = {0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2};
-    SDL_RenderFillRect(renderer, &ground_rect);  // Draw the ground
+    // SDL_SetRenderDrawColor(renderer, 23, 112, 0, 255);  // Green for ground
+    // SDL_Rect ground_rect = {0, SCREEN_HEIGHT / 2, SCREEN_WIDTH, SCREEN_HEIGHT / 2};
+    // SDL_RenderFillRect(renderer, &ground_rect);  // Draw the ground
+
+    // Render the ground with the texture
+    render_ground(renderer);
+    
 
     // Cast rays to draw walls
     for (int i = 0; i < NUM_RAYS; i++) {
@@ -222,7 +266,7 @@ int main(int argc, char *argv[]) {
 
     // Load the map
     if (!parse_map(mapFilePath, maze)) {
-        printf("Faileuid to load the map from %s\n", mapFilePath);
+        printf("Failed to load the map from %s\n", mapFilePath);
         return -1;
     }
 
@@ -237,8 +281,8 @@ int main(int argc, char *argv[]) {
     while (!quit) {
         const Uint8 *state = SDL_GetKeyboardState(NULL);
         while (SDL_PollEvent(&e) != 0) {
-            if (e.type == SDL_QUIT) {
-                quit = 1;
+            if (e.type == SDL_QUIT || (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)) {
+                quit = 1;  // Exit the game when ESC is pressed or window is closed
             }
         }
 
