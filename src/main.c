@@ -1,5 +1,6 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
+#include "map_parser.h"
 #include "raycasting.h"
 #include "raycast_maze.h"
 #include "constants.h"
@@ -10,22 +11,8 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 Player player = {1.5, 1.5, 0};  // Starting position and angle
 
-int maze[12][16] = {
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1},
-    {1, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1},
-    {1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1},
-    {1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1},
-    {1, 0, 0, 1, 0, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1},
-    {1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1},
-    {1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 0, 1},
-    {1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1}
-};
-
-
+// Define the maze dimensions
+int maze[MAZE_HEIGHT][MAZE_WIDTH];
 
 // Initialize SDL, create window and renderer
 int init() {
@@ -34,7 +21,7 @@ int init() {
         return 0;
     }
 
-    window = SDL_CreateWindow("Raycasting Maze", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
+    window = SDL_CreateWindow("3D Maze Game", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, SCREEN_WIDTH, SCREEN_HEIGHT, SDL_WINDOW_SHOWN);
     if (window == NULL) {
         printf("Window could not be created! SDL_Error: %s\n", SDL_GetError());
         return 0;
@@ -219,7 +206,17 @@ void cast_rays(SDL_Renderer *renderer, Player *player, int maze[12][16]) {
     }
 }
 
-int main() {
+int main(int argc, char *argv[]) {
+    if (argc < 2) {
+        printf("Usage: %s <path_to_map_file>\n", argv[0]);
+        return -1;
+    }
+
+    if (!parse_map(argv[1])) {
+        printf("Failed to load maze from %s\n", argv[1]);
+        return -1;
+    }
+
     if (!init()) {
         printf("Failed to initialize!\n");
         return -1;

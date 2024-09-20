@@ -11,7 +11,7 @@
 
 // Player settings
 #define PLAYER_SPEED 0.01
-#define ROTATION_SPEED 0.005
+#define ROTATION_SPEED 0.01
 #define FOV 60.0
 #define NUM_RAYS SCREEN_WIDTH
 
