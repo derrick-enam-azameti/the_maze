@@ -11,8 +11,8 @@ SDL_Window *window = NULL;
 SDL_Renderer *renderer = NULL;
 Player player = {1.5, 1.5, 0};  // Starting position and angle
 
-// Define the maze dimensions
-int maze[MAZE_HEIGHT][MAZE_WIDTH];
+// Define the path to the default maze map file
+#define MAP_FILE_PATH "./maps/maze1.map"
 
 // Initialize SDL, create window and renderer
 int init() {
@@ -207,13 +207,22 @@ void cast_rays(SDL_Renderer *renderer, Player *player, int maze[12][16]) {
 }
 
 int main(int argc, char *argv[]) {
-    if (argc < 2) {
-        printf("Usage: %s <path_to_map_file>\n", argv[0]);
-        return -1;
+    // Declare the variable to hold the map file path
+    const char *mapFilePath;
+    int maze[MAZE_HEIGHT][MAZE_WIDTH];
+
+    // Check if a custom map file path is provided as a command-line argument
+    if (argc > 1) {
+        // Use the provided map file path
+        mapFilePath = argv[1];
+    } else {
+        // Use the default map file path
+        mapFilePath = MAP_FILE_PATH;
     }
 
-    if (!parse_map(argv[1])) {
-        printf("Failed to load maze from %s\n", argv[1]);
+    // Load the map
+    if (!parse_map(mapFilePath, maze)) {
+        printf("Faileuid to load the map from %s\n", mapFilePath);
         return -1;
     }
 

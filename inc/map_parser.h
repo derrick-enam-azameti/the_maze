@@ -12,6 +12,6 @@
 extern int maze[MAZE_HEIGHT][MAZE_WIDTH];
 
 // Function prototype for parsing the map file
-int parse_map(const char *file_path);
+int parse_map(const char *file_path, int maze[MAZE_HEIGHT][MAZE_WIDTH]);
 
 #endif // MAP_PARSER_H
