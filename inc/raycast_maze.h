@@ -15,16 +15,23 @@
 #define FOV 60.0
 #define NUM_RAYS SCREEN_WIDTH
 
-/* Player structure */
-typedef struct {
-    float x;
-    float y;
-    float angle;
+/* Struct to represent a player in the maze */
+/**
+ * struct Player - The player's position and orientation in the maze.
+ * @x: The player's x-coordinate.
+ * @y: The player's y-coordinate.
+ * @angle: The angle at which the player is facing (in radians).
+ */
+typedef struct Player
+{
+	float x;
+	float y;
+	float angle;
 } Player;
 
 /* Function prototypes */
-int init();
-void close_SDL();
+int init(void);
+void close_SDL(void);
 void move_player(Player *player, const Uint8 *state, int maze[12][16]);
 void cast_rays(SDL_Renderer *renderer, Player *player, int maze[12][16]);
 bool is_wall(float x, float y, int maze[12][16]);
