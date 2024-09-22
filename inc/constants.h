@@ -12,4 +12,4 @@
 
 extern int map[MAP_WIDTH][MAP_HEIGHT];
 
-#endif // CONSTANTS_H
+#endif /* CONSTANTS_H */

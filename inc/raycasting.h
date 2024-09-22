@@ -5,4 +5,4 @@
 
 void castRays(SDL_Renderer *renderer, double playerX, double playerY, double playerAngle);
 
-#endif // RAYCASTING_H
+#endif /* RAYCASTING_H */
